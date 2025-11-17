@@ -1,0 +1,61 @@
+spring:
+  application:
+    name: digital-slambook
+
+  profiles:
+    active: dev
+
+  data:
+    mongodb:
+      uri: mongodb+srv://shailendradilippatil:HfqoIrvrKzaUtJsb@clustergemini.43p8vrp.mongodb.net/SlamBook?retryWrites=true&w=majority&appName=ClusterGemini
+      auto-index-creation: true
+
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${MAIL_USERNAME:your-email@gmail.com}
+    password: ${MAIL_PASSWORD:your-app-password}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+  codec:
+    max-in-memory-size: 10MB
+
+server:
+  port: 8080
+
+# JWT Configuration
+jwt:
+  secret: ${JWT_SECRET:slambook-super-secret-jwt-key-for-digital-slambook-platform-256-bits-minimum}
+  access-token-expiration: 900000      # 15 minutes
+  refresh-token-expiration: 604800000  # 7 days
+
+# Application Configuration
+app:
+  cors:
+    allowed-origins: http://localhost:3000,http://localhost:4200,http://localhost:5173
+  file:
+    upload-dir: ./uploads
+    max-file-size: 5MB
+
+# Actuator
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when-authorized
+
+# Logging
+logging:
+  level:
+    root: INFO
+    com.slambook: DEBUG
+    org.springframework.data.mongodb: DEBUG
+    org.springframework.security: DEBUG

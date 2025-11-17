@@ -1,0 +1,19 @@
+spring:
+  data:
+    mongodb:
+      uri: ${MONGODB_URI:mongodb+srv://shailendradilippatil:HfqoIrvrKzaUtJsb@clustergemini.43p8vrp.mongodb.net/SlamBook?retryWrites=true&w=majority&appName=ClusterGemini}
+
+jwt:
+  secret: ${JWT_SECRET:your-production-secret-key-minimum-256-bits-change-this}
+
+  mail:
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+
+logging:
+  level:
+    root: WARN
+    com.slambook: INFO
+
+server:
+  port: ${PORT:8080}

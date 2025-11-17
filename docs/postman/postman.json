@@ -1,0 +1,1281 @@
+{
+  "info": {
+    "_postman_id": "digital-slambook-api",
+    "name": "Digital Slambook API",
+    "description": "Complete API collection for Digital Slambook SaaS platform with Spring Boot WebFlux",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Super Admin Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.environment.set(\"ACCESS_TOKEN\", jsonData.data.accessToken);",
+                  "    pm.environment.set(\"REFRESH_TOKEN\", jsonData.data.refreshToken);",
+                  "    pm.environment.set(\"USER_ID\", jsonData.data.user.id);",
+                  "    console.log(\"Tokens saved to environment\");",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@slambook.com\",\n  \"password\": \"Admin@123\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/auth/login",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "v1", "auth", "login"]
+            },
+            "description": "Login as Super Admin (no college code required)"
+          },
+          "response": []
+        },
+        {
+          "name": "Student Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.environment.set(\"ACCESS_TOKEN\", jsonData.data.accessToken);",
+                  "    pm.environment.set(\"REFRESH_TOKEN\", jsonData.data.refreshToken);",
+                  "    pm.environment.set(\"USER_ID\", jsonData.data.user.id);",
+                  "    console.log(\"Tokens saved to environment\");",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"student@mit.edu\",\n  \"password\": \"Student@123\",\n  \"collegeCode\": \"{{COLLEGE_CODE}}\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/auth/login",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "v1", "auth", "login"]
+            },
+            "description": "Login as Student with college code"
+          },
+          "response": []
+        },
+        {
+          "name": "College Admin Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.environment.set(\"ACCESS_TOKEN\", jsonData.data.accessToken);",
+                  "    pm.environment.set(\"REFRESH_TOKEN\", jsonData.data.refreshToken);",
+                  "    pm.environment.set(\"USER_ID\", jsonData.data.user.id);",
+                  "    console.log(\"Tokens saved to environment\");",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@mit.edu\",\n  \"password\": \"Admin@123\",\n  \"collegeCode\": \"{{COLLEGE_CODE}}\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/auth/login",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "v1", "auth", "login"]
+            },
+            "description": "Login as College Admin"
+          },
+          "response": []
+        },
+        {
+          "name": "Register Student",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200 || pm.response.code === 201) {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.data.accessToken) {",
+                  "        pm.environment.set(\"ACCESS_TOKEN\", jsonData.data.accessToken);",
+                  "        pm.environment.set(\"REFRESH_TOKEN\", jsonData.data.refreshToken);",
+                  "        pm.environment.set(\"USER_ID\", jsonData.data.user.id);",
+                  "        console.log(\"Auto-approved! Tokens saved.\");",
+                  "    } else {",
+                  "        console.log(\"Pending approval by college admin.\");",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"collegeCode\": \"{{COLLEGE_CODE}}\",\n  \"email\": \"john.doe@mit.edu\",\n  \"password\": \"Student@123\",\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"course\": \"Computer Science\",\n  \"batch\": \"2024\",\n  \"rollNumber\": \"CS2024001\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/auth/register",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "v1", "auth", "register"]
+            },
+            "description": "Register new student account"
+          },
+          "response": []
+        },
+        {
+          "name": "Refresh Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.environment.set(\"ACCESS_TOKEN\", jsonData.data.accessToken);",
+                  "    pm.environment.set(\"REFRESH_TOKEN\", jsonData.data.refreshToken);",
+                  "    console.log(\"Tokens refreshed\");",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{REFRESH_TOKEN}}\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/auth/refresh",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "v1", "auth", "refresh"]
+            },
+            "description": "Refresh access token using refresh token"
+          },
+          "response": []
+        },
+        {
+          "name": "Verify Email",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/auth/verify-email?token=verification-token-here",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "v1", "auth", "verify-email"],
+              "query": [
+                {
+                  "key": "token",
+                  "value": "verification-token-here"
+                }
+              ]
+            },
+            "description": "Verify email address (TODO: Implementation pending)"
+          },
+          "response": []
+        },
+        {
+          "name": "Forgot Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"student@mit.edu\",\n  \"collegeCode\": \"{{COLLEGE_CODE}}\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/auth/forgot-password",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "v1", "auth", "forgot-password"]
+            },
+            "description": "Request password reset (TODO: Implementation pending)"
+          },
+          "response": []
+        }
+      ],
+      "description": "Authentication endpoints for login, registration, and token management"
+    },
+    {
+      "name": "Super Admin - College Management",
+      "item": [
+        {
+          "name": "Create College",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.environment.set(\"COLLEGE_ID\", jsonData.data.id);",
+                  "    pm.environment.set(\"COLLEGE_CODE\", jsonData.data.collegeCode);",
+                  "    console.log(\"College created: \" + jsonData.data.collegeCode);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{ACCESS_TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"MIT College of Engineering\",\n  \"email\": \"admin@mit.edu\",\n  \"phone\": \"+1-617-253-1000\",\n  \"address\": {\n    \"street\": \"77 Massachusetts Avenue\",\n    \"city\": \"Cambridge\",\n    \"state\": \"Massachusetts\",\n    \"country\": \"USA\",\n    \"pincode\": \"02139\"\n  },\n  \"subscriptionPlan\": \"PREMIUM\",\n  \"maxUsers\": 500,\n  \"subscriptionExpiry\": \"2025-12-31T23:59:59\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/admin/colleges",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "v1", "admin", "colleges"]
+            },
+            "description": "Create a new college (Super Admin only)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Colleges",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{ACCESS_TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/admin/colleges",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "v1", "admin", "colleges"]
+            },
+            "description": "Get list of all colleges"
+          },
+          "response": []
+        },
+        {
+          "name": "Get College by ID",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{ACCESS_TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/admin/colleges/{{COLLEGE_ID}}",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "v1", "admin", "colleges", "{{COLLEGE_ID}}"]
+            },
+            "description": "Get college details by ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Get College by Code",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{ACCESS_TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/admin/colleges/code/{{COLLEGE_CODE}}",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "v1", "admin", "colleges", "code", "{{COLLEGE_CODE}}"]
+            },
+            "description": "Get college details by college code"
+          },
+          "response": []
+        },
+        {
+          "name": "Update College",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{ACCESS_TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"MIT College of Engineering - Updated\",\n  \"email\": \"admin@mit.edu\",\n  \"phone\": \"+1-617-253-2000\",\n  \"logo\": \"https://example.com/logo.png\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/admin/colleges/{{COLLEGE_ID}}",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "v1", "admin", "colleges", "{{COLLEGE_ID}}"]
+            },
+            "description": "Update college details"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete College",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{ACCESS_TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/admin/colleges/{{COLLEGE_ID}}",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "v1", "admin", "colleges", "{{COLLEGE_ID}}"]
+            },
+            "description": "Delete (deactivate) a college"
+          },
+          "response": []
+        },
+        {
+          "name": "Get System Analytics",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{ACCESS_TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/admin/analytics",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "v1", "admin", "analytics"]
+            },
+            "description": "Get system-wide analytics (TODO: Implementation pending)"
+          },
+          "response": []
+        }
+      ],
+      "description": "Super Admin endpoints for managing colleges"
+    },
+    {
+      "name": "College Admin - User Management",
+      "item": [
+        {
+          "name": "Get Pending Join Requests",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{ACCESS_TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/college/join-requests?status=PENDING",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "v1", "college", "join-requests"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "PENDING"
+                }
+              ]
+            },
+            "description": "Get list of pending join requests (TODO: Implementation pending)"
+          },
+          "response": []
+        },
+        {
+          "name": "Approve Join Request",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{ACCESS_TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"action\": \"APPROVE\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/college/join-requests/{{USER_ID}}/approve",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "v1", "college", "join-requests", "{{USER_ID}}", "approve"]
+            },
+            "description": "Approve a join request (TODO: Implementation pending)"
+          },
+          "response": []
+        },
+        {
+          "name": "Reject Join Request",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{ACCESS_TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"action\": \"REJECT\",\n  \"rejectionReason\": \"Invalid credentials or duplicate account\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/college/join-requests/{{USER_ID}}/reject",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "v1", "college", "join-requests", "{{USER_ID}}", "reject"]
+            },
+            "description": "Reject a join request (TODO: Implementation pending)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Users",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{ACCESS_TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/college/users?page=0&size=20",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "v1", "college", "users"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "Get all users in college (TODO: Implementation pending)"
+          },
+          "response": []
+        },
+        {
+          "name": "Update College Settings",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{ACCESS_TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"requireApproval\": true,\n  \"allowPublicProfiles\": true,\n  \"allowAnonymousEntries\": false,\n  \"enabledFeatures\": [\"SLAM_BOOK\", \"NOTIFICATIONS\", \"ANALYTICS\"]\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/college/settings",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "v1", "college", "settings"]
+            },
+            "description": "Update college settings (TODO: Implementation pending)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get College Analytics",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{ACCESS_TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/college/analytics",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "v1", "college", "analytics"]
+            },
+            "description": "Get college-specific analytics (TODO: Implementation pending)"
+          },
+          "response": []
+        }
+      ],
+      "description": "College Admin endpoints for managing users and settings"
+    },
+    {
+      "name": "User Profile",
+      "item": [
+        {
+          "name": "Get My Profile",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{ACCESS_TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/users/me",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "v1", "users", "me"]
+            },
+            "description": "Get current user's profile (TODO: Implementation pending)"
+          },
+          "response": []
+        },
+        {
+          "name": "Update My Profile",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{ACCESS_TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"nickname\": \"Johnny\",\n  \"bio\": \"Computer Science student passionate about AI and ML\",\n  \"interests\": [\"Coding\", \"Music\", \"Photography\", \"Gaming\"],\n  \"socialLinks\": {\n    \"linkedin\": \"https://linkedin.com/in/johndoe\",\n    \"github\": \"https://github.com/johndoe\",\n    \"instagram\": \"@johndoe\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/users/me",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "v1", "users", "me"]
+            },
+            "description": "Update current user's profile (TODO: Implementation pending)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get User by ID",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{ACCESS_TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/users/{{USER_ID}}",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "v1", "users", "{{USER_ID}}"]
+            },
+            "description": "Get user profile by ID (TODO: Implementation pending)"
+          },
+          "response": []
+        },
+        {
+          "name": "Search Users",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{ACCESS_TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/users/search?query=john&batch=2024&course=Computer Science",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "v1", "users", "search"],
+              "query": [
+                {
+                  "key": "query",
+                  "value": "john"
+                },
+                {
+                  "key": "batch",
+                  "value": "2024"
+                },
+                {
+                  "key": "course",
+                  "value": "Computer Science"
+                }
+              ]
+            },
+            "description": "Search for users (TODO: Implementation pending)"
+          },
+          "response": []
+        },
+        {
+          "name": "Upload Profile Picture",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{ACCESS_TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/users/upload-photo",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "v1", "users", "upload-photo"]
+            },
+            "description": "Upload profile picture (TODO: Implementation pending)"
+          },
+          "response": []
+        }
+      ],
+      "description": "User profile management endpoints"
+    },
+    {
+      "name": "SlamBook Entries",
+      "item": [
+        {
+          "name": "Create Slam Book Entry",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{ACCESS_TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"writtenFor\": \"{{USER_ID}}\",\n  \"isAnonymous\": false,\n  \"responses\": {\n    \"nickname\": \"Johnny\",\n    \"firstImpression\": \"Super friendly and approachable!\",\n    \"bestMemory\": \"That epic hackathon where we pulled an all-nighter\",\n    \"personality\": \"Energetic, creative, and always ready to help\",\n    \"advice\": \"Keep being awesome and never stop learning!\",\n    \"wish\": \"Hope you achieve all your dreams in tech!\",\n    \"favoriteThingAboutYou\": \"Your sense of humor and problem-solving skills\",\n    \"wouldLikeToSay\": \"You're going to do amazing things!\"\n  },\n  \"ratings\": {\n    \"friendliness\": 10,\n    \"humor\": 9,\n    \"intelligence\": 10,\n    \"kindness\": 10\n  },\n  \"visibility\": \"PUBLIC\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/slambook/entries",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "v1", "slambook", "entries"]
+            },
+            "description": "Create a new slam book entry (TODO: Implementation pending)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Entries Written For Me",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{ACCESS_TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/slambook/entries/for-me?page=0&size=20",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "v1", "slambook", "entries", "for-me"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "Get slam book entries written for current user"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Entries Written By Me",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{ACCESS_TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/slambook/entries/by-me?page=0&size=20",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "v1", "slambook", "entries", "by-me"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "Get slam book entries written by current user"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Entry by ID",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{ACCESS_TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/slambook/entries/{{ENTRY_ID}}",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "v1", "slambook", "entries", "{{ENTRY_ID}}"]
+            },
+            "description": "Get specific slam book entry by ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Entry",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{ACCESS_TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"responses\": {\n    \"nickname\": \"Johnny Updated\",\n    \"bestMemory\": \"That amazing hackathon project!\"\n  },\n  \"ratings\": {\n    \"friendliness\": 10,\n    \"humor\": 10\n  }\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/slambook/entries/{{ENTRY_ID}}",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "v1", "slambook", "entries", "{{ENTRY_ID}}"]
+            },
+            "description": "Update existing slam book entry"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Entry",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{ACCESS_TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/slambook/entries/{{ENTRY_ID}}",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "v1", "slambook", "entries", "{{ENTRY_ID}}"]
+            },
+            "description": "Delete slam book entry"
+          },
+          "response": []
+        },
+        {
+          "name": "Add Reaction",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{ACCESS_TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"LOVE\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/slambook/entries/{{ENTRY_ID}}/reactions",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "v1", "slambook", "entries", "{{ENTRY_ID}}", "reactions"]
+            },
+            "description": "Add reaction to entry (LOVE, SMILE, SURPRISED, THINKING, FIRE, CLAP)"
+          },
+          "response": []
+        },
+        {
+          "name": "Remove Reaction",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{ACCESS_TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/slambook/entries/{{ENTRY_ID}}/reactions",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "v1", "slambook", "entries", "{{ENTRY_ID}}", "reactions"]
+            },
+            "description": "Remove your reaction from entry"
+          },
+          "response": []
+        },
+        {
+          "name": "Report Entry",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{ACCESS_TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Inappropriate content or spam\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/slambook/entries/{{ENTRY_ID}}/report",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "v1", "slambook", "entries", "{{ENTRY_ID}}", "report"]
+            },
+            "description": "Report inappropriate entry"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Reported Entries (Admin)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{ACCESS_TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/slambook/entries/reported",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "v1", "slambook", "entries", "reported"]
+            },
+            "description": "Get all reported entries (College Admin / Super Admin)"
+          },
+          "response": []
+        }
+      ],
+      "description": "Slam book entry management endpoints"
+    },
+    {
+      "name": "Notifications",
+      "item": [
+        {
+          "name": "Get All Notifications",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{ACCESS_TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/notifications",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "v1", "notifications"]
+            },
+            "description": "Get all notifications for current user"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Unread Notifications",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{ACCESS_TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/notifications/unread",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "v1", "notifications", "unread"]
+            },
+            "description": "Get unread notifications only"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Unread Count",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{ACCESS_TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/notifications/unread-count",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "v1", "notifications", "unread-count"]
+            },
+            "description": "Get count of unread notifications"
+          },
+          "response": []
+        },
+        {
+          "name": "Mark as Read",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{ACCESS_TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/notifications/{{NOTIFICATION_ID}}/read",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "v1", "notifications", "{{NOTIFICATION_ID}}", "read"]
+            },
+            "description": "Mark specific notification as read"
+          },
+          "response": []
+        },
+        {
+          "name": "Mark All as Read",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{ACCESS_TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/notifications/read-all",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "v1", "notifications", "read-all"]
+            },
+            "description": "Mark all notifications as read"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Notification",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{ACCESS_TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/notifications/{{NOTIFICATION_ID}}",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "v1", "notifications", "{{NOTIFICATION_ID}}"]
+            },
+            "description": "Delete specific notification"
+          },
+          "response": []
+        }
+      ],
+      "description": "Notification management endpoints"
+    }
+  ],
+  "variable": [
+    {
+      "key": "BASE_URL",
+      "value": "http://localhost:8080",
+      "type": "string"
+    }
+  ]
+}

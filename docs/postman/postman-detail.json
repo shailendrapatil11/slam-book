@@ -1,0 +1,1280 @@
+{
+  "info": {
+    "_postman_id": "digital-slambook-complete-157",
+    "name": "🎓 Digital Slambook - Complete API (157 Requests)",
+    "description": "## Complete API Collection for Digital Slambook Platform\n\n**📊 Statistics:**\n- Total Requests: 157\n- Categories: 10\n- Auto-Scripts: ✅\n- Variables: 12\n\n**🚀 Quick Start:**\n1. Import this collection\n2. Create environment: BASE_URL = http://localhost:8080\n3. Run 'Super Admin Login'\n4. All tokens auto-saved!\n5. Start testing any endpoint\n\n**📝 Test Flow:**\nSuper Admin Login → Create College → Register Student → Approve → Student Login → Create Entry\n\n**Version:** 1.0.0\n**Created:** November 2025\n**Platform:** Spring Boot WebFlux + MongoDB",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [{"key": "token", "value": "{{ACCESS_TOKEN}}", "type": "string"}]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Global Pre-request Script",
+          "const requestName = pm.info.requestName;",
+          "const hasToken = pm.environment.get('ACCESS_TOKEN');",
+          "console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');",
+          "console.log('📍 Request:', requestName);",
+          "console.log('🔑 Token:', hasToken ? '✅ Present' : '❌ Missing');",
+          "console.log('🕐 Time:', new Date().toLocaleTimeString());"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Global Test Script",
+          "const statusCode = pm.response.code;",
+          "const responseTime = pm.response.responseTime;",
+          "",
+          "if (statusCode >= 200 && statusCode < 300) {",
+          "    console.log('✅ Success:', statusCode, '| Time:', responseTime + 'ms');",
+          "} else if (statusCode >= 400) {",
+          "    console.log('❌ Error:', statusCode);",
+          "    console.log('Message:', pm.response.json().message || 'No message');",
+          "}",
+          "console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');",
+          "",
+          "// Auto-test response time",
+          "pm.test('Response time < 2s', () => {",
+          "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+          "});"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "🔐 1. Authentication (9)",
+      "item": [
+        {
+          "name": "1.1 Super Admin Login ⭐",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "if (pm.response.code === 200) {",
+                "    const data = pm.response.json();",
+                "    pm.environment.set('ACCESS_TOKEN', data.data.accessToken);",
+                "    pm.environment.set('REFRESH_TOKEN', data.data.refreshToken);",
+                "    pm.environment.set('USER_ID', data.data.user.id);",
+                "    pm.environment.set('USER_ROLE', 'SUPER_ADMIN');",
+                "    pm.environment.set('COLLEGE_ID', '');",
+                "    console.log('🎉 SUPER ADMIN LOGIN SUCCESSFUL!');",
+                "    console.log('👤 User ID:', data.data.user.id);",
+                "    console.log('⏱️  Token expires in:', data.data.expiresIn, 'seconds (15 min)');",
+                "}",
+                "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                "pm.test('Has access token', () => pm.expect(pm.response.json().data.accessToken).to.exist);",
+                "pm.test('Role is SUPER_ADMIN', () => pm.expect(pm.response.json().data.user.role).to.equal('SUPER_ADMIN'));"
+              ],
+              "type": "text/javascript"
+            }
+          }],
+          "request": {
+            "auth": {"type": "noauth"},
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@slambook.com\",\n  \"password\": \"Admin@123\"\n}",
+              "options": {"raw": {"language": "json"}}
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/auth/login",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "v1", "auth", "login"]
+            },
+            "description": "**Super Admin Login**\n\n🔑 **Default Credentials:**\n- Email: `admin@slambook.com`\n- Password: `Admin@123`\n\n**Prerequisites:**\n- Super admin created in MongoDB\n\n**Auto-Saves:**\n- ✅ ACCESS_TOKEN\n- ✅ REFRESH_TOKEN\n- ✅ USER_ID\n- ✅ USER_ROLE\n\n**Next Steps:**\n1. Create College\n2. Manage system"
+          },
+          "response": []
+        },
+        {
+          "name": "1.2 College Admin Login",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "if (pm.response.code === 200) {",
+                "    const data = pm.response.json();",
+                "    pm.environment.set('ACCESS_TOKEN', data.data.accessToken);",
+                "    pm.environment.set('REFRESH_TOKEN', data.data.refreshToken);",
+                "    pm.environment.set('USER_ID', data.data.user.id);",
+                "    pm.environment.set('COLLEGE_ID', data.data.user.collegeId);",
+                "    pm.environment.set('USER_ROLE', 'COLLEGE_ADMIN');",
+                "    console.log('🎉 COLLEGE ADMIN LOGIN SUCCESSFUL!');",
+                "}"
+              ],
+              "type": "text/javascript"
+            }
+          }],
+          "request": {
+            "auth": {"type": "noauth"},
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@mit.edu\",\n  \"password\": \"Admin@123\",\n  \"collegeCode\": \"{{COLLEGE_CODE}}\"\n}",
+              "options": {"raw": {"language": "json"}}
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/auth/login",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "v1", "auth", "login"]
+            },
+            "description": "**College Admin Login**\n\n**Requirements:**\n- Valid college code\n- Admin email (auto-created with college)\n- Default password: Admin@123"
+          },
+          "response": []
+        },
+        {
+          "name": "1.3 Student Login",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "if (pm.response.code === 200) {",
+                "    const data = pm.response.json();",
+                "    pm.environment.set('ACCESS_TOKEN', data.data.accessToken);",
+                "    pm.environment.set('REFRESH_TOKEN', data.data.refreshToken);",
+                "    pm.environment.set('USER_ID', data.data.user.id);",
+                "    pm.environment.set('COLLEGE_ID', data.data.user.collegeId);",
+                "    pm.environment.set('USER_ROLE', 'STUDENT');",
+                "    console.log('🎉 STUDENT LOGIN SUCCESSFUL!');",
+                "}"
+              ],
+              "type": "text/javascript"
+            }
+          }],
+          "request": {
+            "auth": {"type": "noauth"},
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"john.doe@mit.edu\",\n  \"password\": \"Student@123\",\n  \"collegeCode\": \"{{COLLEGE_CODE}}\"\n}",
+              "options": {"raw": {"language": "json"}}
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/auth/login",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "v1", "auth", "login"]
+            },
+            "description": "**Student Login**\n\n**Prerequisites:**\n1. Student registered\n2. Join request approved\n3. Has college code"
+          },
+          "response": []
+        },
+        {
+          "name": "1.4 Register Student",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "if (pm.response.code === 200 || pm.response.code === 201) {",
+                "    const data = pm.response.json();",
+                "    if (data.data.accessToken) {",
+                "        pm.environment.set('ACCESS_TOKEN', data.data.accessToken);",
+                "        pm.environment.set('USER_ID', data.data.user.id);",
+                "        console.log('✅ Auto-approved! Can login immediately');",
+                "    } else {",
+                "        pm.environment.set('PENDING_USER_ID', data.data.user.id);",
+                "        console.log('⏳ Pending admin approval');",
+                "    }",
+                "}"
+              ],
+              "type": "text/javascript"
+            }
+          }],
+          "request": {
+            "auth": {"type": "noauth"},
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"collegeCode\": \"{{COLLEGE_CODE}}\",\n  \"email\": \"john.doe@mit.edu\",\n  \"password\": \"Student@123\",\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"course\": \"Computer Science\",\n  \"batch\": \"2024\",\n  \"rollNumber\": \"CS2024001\"\n}",
+              "options": {"raw": {"language": "json"}}
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/auth/register",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "v1", "auth", "register"]
+            },
+            "description": "**Student Registration**\n\n**Behavior:**\n- Auto-approved if college settings allow\n- Pending if manual approval required"
+          },
+          "response": []
+        },
+        {
+          "name": "1.5 Refresh Token",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "if (pm.response.code === 200) {",
+                "    const data = pm.response.json();",
+                "    pm.environment.set('ACCESS_TOKEN', data.data.accessToken);",
+                "    pm.environment.set('REFRESH_TOKEN', data.data.refreshToken);",
+                "    console.log('♻️  Tokens refreshed successfully');",
+                "}"
+              ],
+              "type": "text/javascript"
+            }
+          }],
+          "request": {
+            "auth": {"type": "noauth"},
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{REFRESH_TOKEN}}\"\n}",
+              "options": {"raw": {"language": "json"}}
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/auth/refresh",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "v1", "auth", "refresh"]
+            },
+            "description": "**Refresh Access Token**\n\n**When:** Access token expires (15 min)\n**Expiry:** Refresh token (7 days)"
+          },
+          "response": []
+        },
+        {
+          "name": "1.6 Verify Email",
+          "request": {
+            "auth": {"type": "noauth"},
+            "method": "GET",
+            "url": "{{BASE_URL}}/api/v1/auth/verify-email?token={{VERIFICATION_TOKEN}}",
+            "description": "**Email Verification** (TODO)"
+          },
+          "response": []
+        },
+        {
+          "name": "1.7 Forgot Password",
+          "request": {
+            "auth": {"type": "noauth"},
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"john.doe@mit.edu\",\n  \"collegeCode\": \"{{COLLEGE_CODE}}\"\n}"
+            },
+            "url": "{{BASE_URL}}/api/v1/auth/forgot-password",
+            "description": "**Request Password Reset** (TODO)"
+          },
+          "response": []
+        },
+        {
+          "name": "1.8 Reset Password",
+          "request": {
+            "auth": {"type": "noauth"},
+            "method": "POST",
+            "body": {"raw": "{\"token\": \"token\", \"newPassword\": \"NewPass@123\"}"},
+            "url": "{{BASE_URL}}/api/v1/auth/reset-password",
+            "description": "**Reset Password with Token** (TODO)"
+          },
+          "response": []
+        },
+        {
+          "name": "1.9 Change Password",
+          "request": {
+            "method": "POST",
+            "body": {"raw": "{\"oldPassword\": \"old\", \"newPassword\": \"new\"}"},
+            "url": "{{BASE_URL}}/api/v1/auth/change-password",
+            "description": "**Change Password** (Logged in user)"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "👑 2. Super Admin - Colleges (20)",
+      "item": [
+        {
+          "name": "2.1 Create College ⭐",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "if (pm.response.code === 201) {",
+                "    const data = pm.response.json();",
+                "    pm.environment.set('COLLEGE_ID', data.data.id);",
+                "    pm.environment.set('COLLEGE_CODE', data.data.collegeCode);",
+                "    console.log('🏫 COLLEGE CREATED!');",
+                "    console.log('📝 College Code:', data.data.collegeCode);",
+                "    console.log('🆔 College ID:', data.data.id);",
+                "    console.log('📧 Admin Email:', data.data.email);",
+                "    console.log('🔑 Admin Password: Admin@123');",
+                "}"
+              ],
+              "type": "text/javascript"
+            }
+          }],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"MIT College of Engineering\",\n  \"email\": \"admin@mit.edu\",\n  \"phone\": \"+1-617-253-1000\",\n  \"address\": {\n    \"street\": \"77 Massachusetts Avenue\",\n    \"city\": \"Cambridge\",\n    \"state\": \"Massachusetts\",\n    \"country\": \"USA\",\n    \"pincode\": \"02139\"\n  },\n  \"subscriptionPlan\": \"PREMIUM\",\n  \"maxUsers\": 500,\n  \"subscriptionExpiry\": \"2025-12-31T23:59:59\"\n}",
+              "options": {"raw": {"language": "json"}}
+            },
+            "url": "{{BASE_URL}}/api/v1/admin/colleges",
+            "description": "**Create College**\n\n**Plans:**\n- BASIC: 100 users\n- PREMIUM: 500 users\n- ENTERPRISE: Unlimited\n\n**Auto-creates:** Admin user"
+          },
+          "response": []
+        },
+        {
+          "name": "2.2 Get All Colleges",
+          "request": {
+            "method": "GET",
+            "url": "{{BASE_URL}}/api/v1/admin/colleges"
+          },
+          "response": []
+        },
+        {
+          "name": "2.3 Get College by ID",
+          "request": {
+            "method": "GET",
+            "url": "{{BASE_URL}}/api/v1/admin/colleges/{{COLLEGE_ID}}"
+          },
+          "response": []
+        },
+        {
+          "name": "2.4 Get College by Code",
+          "request": {
+            "method": "GET",
+            "url": "{{BASE_URL}}/api/v1/admin/colleges/code/{{COLLEGE_CODE}}"
+          },
+          "response": []
+        },
+        {
+          "name": "2.5 Update College",
+          "request": {
+            "method": "PUT",
+            "body": {"raw": "{\"name\": \"Updated Name\", \"email\": \"admin@mit.edu\"}"},
+            "url": "{{BASE_URL}}/api/v1/admin/colleges/{{COLLEGE_ID}}"
+          },
+          "response": []
+        },
+        {
+          "name": "2.6 Delete College",
+          "request": {
+            "method": "DELETE",
+            "url": "{{BASE_URL}}/api/v1/admin/colleges/{{COLLEGE_ID}}"
+          },
+          "response": []
+        },
+        {
+          "name": "2.7 Activate College",
+          "request": {"method": "PATCH", "url": "{{BASE_URL}}/api/v1/admin/colleges/{{COLLEGE_ID}}/activate"},
+          "response": []
+        },
+        {
+          "name": "2.8 Deactivate College",
+          "request": {"method": "PATCH", "url": "{{BASE_URL}}/api/v1/admin/colleges/{{COLLEGE_ID}}/deactivate"},
+          "response": []
+        },
+        {
+          "name": "2.9 Update Subscription",
+          "request": {
+            "method": "PATCH",
+            "body": {"raw": "{\"subscriptionPlan\": \"ENTERPRISE\", \"maxUsers\": 999999}"},
+            "url": "{{BASE_URL}}/api/v1/admin/colleges/{{COLLEGE_ID}}/subscription"
+          },
+          "response": []
+        },
+        {
+          "name": "2.10 Get Active Colleges",
+          "request": {"method": "GET", "url": "{{BASE_URL}}/api/v1/admin/colleges?status=ACTIVE"},
+          "response": []
+        },
+        {
+          "name": "2.11 Expiring Subscriptions",
+          "request": {"method": "GET", "url": "{{BASE_URL}}/api/v1/admin/colleges/expiring?days=30"},
+          "response": []
+        },
+        {
+          "name": "2.12 Filter by Plan",
+          "request": {"method": "GET", "url": "{{BASE_URL}}/api/v1/admin/colleges?subscriptionPlan=PREMIUM"},
+          "response": []
+        },
+        {
+          "name": "2.13 Search Colleges",
+          "request": {"method": "GET", "url": "{{BASE_URL}}/api/v1/admin/colleges/search?query=MIT"},
+          "response": []
+        },
+        {
+          "name": "2.14 System Analytics",
+          "request": {"method": "GET", "url": "{{BASE_URL}}/api/v1/admin/analytics?period=30days"},
+          "response": []
+        },
+        {
+          "name": "2.15 Revenue Analytics",
+          "request": {"method": "GET", "url": "{{BASE_URL}}/api/v1/admin/analytics/revenue?year=2025"},
+          "response": []
+        },
+        {
+          "name": "2.16 User Growth",
+          "request": {"method": "GET", "url": "{{BASE_URL}}/api/v1/admin/analytics/user-growth?interval=monthly"},
+          "response": []
+        },
+        {
+          "name": "2.17 Subscription Distribution",
+          "request": {"method": "GET", "url": "{{BASE_URL}}/api/v1/admin/analytics/subscriptions"},
+          "response": []
+        },
+        {
+          "name": "2.18 Active Users Report",
+          "request": {"method": "GET", "url": "{{BASE_URL}}/api/v1/admin/analytics/active-users"},
+          "response": []
+        },
+        {
+          "name": "2.19 Monthly Report",
+          "request": {"method": "GET", "url": "{{BASE_URL}}/api/v1/admin/analytics/monthly?month=11&year=2025"},
+          "response": []
+        },
+        {
+          "name": "2.20 Export Data",
+          "request": {"method": "GET", "url": "{{BASE_URL}}/api/v1/admin/export?type=colleges&format=csv"},
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "🏫 3. College Admin (25)",
+      "item": [
+        {
+          "name": "3.1 Pending Join Requests ⭐",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "if (pm.response.code === 200 && pm.response.json().data.length > 0) {",
+                "    pm.environment.set('PENDING_USER_ID', pm.response.json().data[0].id);",
+                "    console.log('📋 Pending users:', pm.response.json().data.length);",
+                "}"
+              ],
+              "type": "text/javascript"
+            }
+          }],
+          "request": {"method": "GET", "url": "{{BASE_URL}}/api/v1/college/join-requests"},
+          "response": []
+        },
+        {
+          "name": "3.2 All Join Requests",
+          "request": {"method": "GET", "url": "{{BASE_URL}}/api/v1/college/join-requests?status=all"},
+          "response": []
+        },
+        {
+          "name": "3.3 Approve Request ⭐",
+          "request": {"method": "PUT", "url": "{{BASE_URL}}/api/v1/college/join-requests/{{PENDING_USER_ID}}/approve"},
+          "response": []
+        },
+        {
+          "name": "3.4 Reject Request",
+          "request": {
+            "method": "PUT",
+            "body": {"raw": "{\"action\": \"REJECT\", \"rejectionReason\": \"Invalid credentials\"}"},
+            "url": "{{BASE_URL}}/api/v1/college/join-requests/{{PENDING_USER_ID}}/reject"
+          },
+          "response": []
+        },
+        {
+          "name": "3.5 Bulk Approve",
+          "request": {
+            "method": "POST",
+            "body": {"raw": "{\"userIds\": [\"id1\", \"id2\"]}"},
+            "url": "{{BASE_URL}}/api/v1/college/join-requests/bulk-approve"
+          },
+          "response": []
+        },
+        {
+          "name": "3.6 Bulk Reject",
+          "request": {
+            "method": "POST",
+            "body": {"raw": "{\"userIds\": [], \"rejectionReason\": \"reason\"}"},
+            "url": "{{BASE_URL}}/api/v1/college/join-requests/bulk-reject"
+          },
+          "response": []
+        },
+        {
+          "name": "3.7 Approved Users",
+          "request": {"method": "GET", "url": "{{BASE_URL}}/api/v1/college/join-requests?status=APPROVED"},
+          "response": []
+        },
+        {
+          "name": "3.8 Rejected Users",
+          "request": {"method": "GET", "url": "{{BASE_URL}}/api/v1/college/join-requests?status=REJECTED"},
+          "response": []
+        },
+        {
+          "name": "3.9 Get All Users",
+          "request": {"method": "GET", "url": "{{BASE_URL}}/api/v1/college/users"},
+          "response": []
+        },
+        {
+          "name": "3.10 Users by Batch",
+          "request": {"method": "GET", "url": "{{BASE_URL}}/api/v1/college/users?batch=2024"},
+          "response": []
+        },
+        {
+          "name": "3.11 Users by Course",
+          "request": {"method": "GET", "url": "{{BASE_URL}}/api/v1/college/users?course=Computer Science"},
+          "response": []
+        },
+        {
+          "name": "3.12 Active Users",
+          "request": {"method": "GET", "url": "{{BASE_URL}}/api/v1/college/users?status=active"},
+          "response": []
+        },
+        {
+          "name": "3.13 Inactive Users",
+          "request": {"method": "GET", "url": "{{BASE_URL}}/api/v1/college/users?status=inactive"},
+          "response": []
+        },
+        {
+          "name": "3.14 Deactivate User",
+          "request": {"method": "PATCH", "url": "{{BASE_URL}}/api/v1/college/users/{{USER_ID}}/deactivate"},
+          "response": []
+        },
+        {
+          "name": "3.15 Reactivate User",
+          "request": {"method": "PATCH", "url": "{{BASE_URL}}/api/v1/college/users/{{USER_ID}}/reactivate"},
+          "response": []
+        },
+        {
+          "name": "3.16 User Details",
+          "request": {"method": "GET", "url": "{{BASE_URL}}/api/v1/college/users/{{USER_ID}}"},
+          "response": []
+        },
+        {
+          "name": "3.17 College Info",
+          "request": {"method": "GET", "url": "{{BASE_URL}}/api/v1/college/info"},
+          "response": []
+        },
+        {
+          "name": "3.18 Update Settings ⭐",
+          "request": {
+            "method": "PUT",
+            "body": {"raw": "{\"requireApproval\": true, \"allowPublicProfiles\": true, \"allowAnonymousEntries\": false}"},
+            "url": "{{BASE_URL}}/api/v1/college/settings"
+          },
+          "response": []
+        },
+        {
+          "name": "3.19 College Analytics",
+          "request": {"method": "GET", "url": "{{BASE_URL}}/api/v1/college/analytics"},
+          "response": []
+        },
+        {
+          "name": "3.20 User Statistics",
+          "request": {"method": "GET", "url": "{{BASE_URL}}/api/v1/college/analytics/users"},
+          "response": []
+        },
+        {
+          "name": "3.21 Reported Entries",
+          "request": {"method": "GET", "url": "{{BASE_URL}}/api/v1/slambook/entries/reported"},
+          "response": []
+        },
+        {
+          "name": "3.22 Review Report",
+          "request": {
+            "method": "PUT",
+            "body": {"raw": "{\"action\": \"APPROVE\", \"notes\": \"Reviewed\"}"},
+            "url": "{{BASE_URL}}/api/v1/slambook/entries/{{ENTRY_ID}}/review"
+          },
+          "response": []
+        },
+        {
+          "name": "3.23 Remove Entry",
+          "request": {"method": "DELETE", "url": "{{BASE_URL}}/api/v1/slambook/entries/{{ENTRY_ID}}/admin-remove"},
+          "response": []
+        },
+        {
+          "name": "3.24 Moderation Queue",
+          "request": {"method": "GET", "url": "{{BASE_URL}}/api/v1/college/moderation/queue"},
+          "response": []
+        },
+        {
+          "name": "3.25 Moderation History",
+          "request": {"method": "GET", "url": "{{BASE_URL}}/api/v1/college/moderation/history?days=30"},
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "👤 4. User Profile (15)",
+      "item": [
+        {
+          "name": "4.1 Get My Profile ⭐",
+          "request": {"method": "GET", "url": "{{BASE_URL}}/api/v1/users/me"},
+          "response": []
+        },
+        {
+          "name": "4.2 Update Profile ⭐",
+          "request": {
+            "method": "PUT",
+            "body": {"raw": "{\"firstName\": \"John\", \"lastName\": \"Doe\", \"nickname\": \"Johnny\", \"bio\": \"CS student\", \"interests\": [\"Coding\", \"Music\"]}"},
+            "url": "{{BASE_URL}}/api/v1/users/me"
+          },
+          "response": []
+        },
+        {
+          "name": "4.3 Update Profile Picture",
+          "request": {
+            "method": "POST",
+            "body": {"mode": "formdata", "formdata": [{"key": "file", "type": "file", "src": []}]},
+            "url": "{{BASE_URL}}/api/v1/users/me/photo"
+          },
+          "response": []
+        },
+        {
+          "name": "4.4 Update Slam Book Settings",
+          "request": {
+            "method": "PUT",
+            "body": {"raw": "{\"isPublic\": true, \"allowAnonymous\": true, \"theme\": \"colorful\"}"},
+            "url": "{{BASE_URL}}/api/v1/users/me/slambook-settings"
+          },
+          "response": []
+        },
+        {
+          "name": "4.5 Get User by ID",
+          "request": {"method": "GET", "url": "{{BASE_URL}}/api/v1/users/{{USER_ID}}"},
+          "response": []
+        },
+        {
+          "name": "4.6 Search Users ⭐",
+          "request": {"method": "GET", "url": "{{BASE_URL}}/api/v1/users/search?query=john&batch=2024&course=Computer Science"},
+          "response": []
+        },
+        {
+          "name": "4.7 Search by Name",
+          "request": {"method": "GET", "url": "{{BASE_URL}}/api/v1/users/search?query=john"},
+          "response": []
+        },
+        {
+          "name": "4.8 Search by Batch",
+          "request": {"method": "GET", "url": "{{BASE_URL}}/api/v1/users/search?batch=2024"},
+          "response": []
+        },
+        {
+          "name": "4.9 Search by Course",
+          "request": {"method": "GET", "url": "{{BASE_URL}}/api/v1/users/search?course=Computer Science"},
+          "response": []
+        },
+        {
+          "name": "4.10 Get Classmates",
+          "request": {"method": "GET", "url": "{{BASE_URL}}/api/v1/users/classmates"},
+          "response": []
+        },
+        {
+          "name": "4.11 Popular Users",
+          "request": {"method": "GET", "url": "{{BASE_URL}}/api/v1/users/popular?limit=10"},
+          "response": []
+        },
+        {
+          "name": "4.12 Recently Joined",
+          "request": {"method": "GET", "url": "{{BASE_URL}}/api/v1/users/recent?days=7"},
+          "response": []
+        },
+        {
+          "name": "4.13 Autocomplete",
+          "request": {"method": "GET", "url": "{{BASE_URL}}/api/v1/users/autocomplete?q=joh"},
+          "response": []
+        },
+        {
+          "name": "4.14 User Statistics",
+          "request": {"method": "GET", "url": "{{BASE_URL}}/api/v1/users/{{USER_ID}}/stats"},
+          "response": []
+        },
+        {
+          "name": "4.15 Advanced Search",
+          "request": {
+            "method": "POST",
+            "body": {"raw": "{\"query\": \"john\", \"batch\": \"2024\", \"course\": \"CS\", \"interests\": [\"Coding\"]}"},
+            "url": "{{BASE_URL}}/api/v1/users/search/advanced"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "📖 5. Slam Book Entries (35)",
+      "item": [
+        {
+          "name": "5.1 Create Entry ⭐",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "if (pm.response.code === 201) {",
+                "    pm.environment.set('ENTRY_ID', pm.response.json().data.id);",
+                "    console.log('📝 Entry created:', pm.response.json().data.id);",
+                "}"
+              ],
+              "type": "text/javascript"
+            }
+          }],
+          "request": {
+            "method": "POST",
+            "body": {
+              "raw": "{\"writtenFor\": \"{{USER_ID}}\", \"isAnonymous\": false, \"responses\": {\"nickname\": \"Johnny\", \"firstImpression\": \"Super friendly!\", \"bestMemory\": \"That hackathon!\", \"advice\": \"Keep being awesome!\"}, \"ratings\": {\"friendliness\": 10, \"humor\": 9}, \"visibility\": \"PUBLIC\"}"
+            },
+            "url": "{{BASE_URL}}/api/v1/slambook/entries"
+          },
+          "response": []
+        },
+        {
+          "name": "5.2 Create Anonymous Entry",
+          "request": {
+            "method": "POST",
+            "body": {"raw": "{\"writtenFor\": \"{{USER_ID}}\", \"isAnonymous\": true, \"responses\": {\"nickname\": \"Secret\", \"advice\": \"You're awesome!\"}}"},
+            "url": "{{BASE_URL}}/api/v1/slambook/entries"
+          },
+          "response": []
+        },
+        {
+          "name": "5.3 Get Entries For Me ⭐",
+          "request": {"method": "GET", "url": "{{BASE_URL}}/api/v1/slambook/entries/for-me"},
+          "response": []
+        },
+        {
+          "name": "5.4 Get Entries By Me",
+          "request": {"method": "GET", "url": "{{BASE_URL}}/api/v1/slambook/entries/by-me"},
+          "response": []
+        },
+        {
+          "name": "5.5 Get Entry by ID",
+          "request": {"method": "GET", "url": "{{BASE_URL}}/api/v1/slambook/entries/{{ENTRY_ID}}"},
+          "response": []
+        },
+        {
+          "name": "5.6 Update Entry",
+          "request": {
+            "method": "PUT",
+            "body": {"raw": "{\"responses\": {\"nickname\": \"Updated\"}, \"ratings\": {\"friendliness\": 10}}"},
+            "url": "{{BASE_URL}}/api/v1/slambook/entries/{{ENTRY_ID}}"
+          },
+          "response": []
+        },
+        {
+          "name": "5.7 Update Visibility",
+          "request": {
+            "method": "PATCH",
+            "body": {"raw": "{\"visibility\": \"PRIVATE\"}"},
+            "url": "{{BASE_URL}}/api/v1/slambook/entries/{{ENTRY_ID}}/visibility"
+          },
+          "response": []
+        },
+        {
+          "name": "5.8 Delete Entry",
+          "request": {"method": "DELETE", "url": "{{BASE_URL}}/api/v1/slambook/entries/{{ENTRY_ID}}"},
+          "response": []
+        },
+        {
+          "name": "5.9 Add Reaction - Love ❤️",
+          "request": {
+            "method": "POST",
+            "body": {"raw": "{\"type\": \"LOVE\"}"},
+            "url": "{{BASE_URL}}/api/v1/slambook/entries/{{ENTRY_ID}}/reactions"
+          },
+          "response": []
+        },
+        {
+          "name": "5.10 Add Reaction - Smile 😊",
+          "request": {
+            "method": "POST",
+            "body": {"raw": "{\"type\": \"SMILE\"}"},
+            "url": "{{BASE_URL}}/api/v1/slambook/entries/{{ENTRY_ID}}/reactions"
+          },
+          "response": []
+        },
+        {
+          "name": "5.11 Add Reaction - Fire 🔥",
+          "request": {
+            "method": "POST",
+            "body": {"raw": "{\"type\": \"FIRE\"}"},
+            "url": "{{BASE_URL}}/api/v1/slambook/entries/{{ENTRY_ID}}/reactions"
+          },
+          "response": []
+        },
+        {
+          "name": "5.12 Add Reaction - Surprised 😮",
+          "request": {
+            "method": "POST",
+            "body": {"raw": "{\"type\": \"SURPRISED\"}"},
+            "url": "{{BASE_URL}}/api/v1/slambook/entries/{{ENTRY_ID}}/reactions"
+          },
+          "response": []
+        },
+        {
+          "name": "5.13 Add Reaction - Thinking 🤔",
+          "request": {
+            "method": "POST",
+            "body": {"raw": "{\"type\": \"THINKING\"}"},
+            "url": "{{BASE_URL}}/api/v1/slambook/entries/{{ENTRY_ID}}/reactions"
+          },
+          "response": []
+        },
+        {
+          "name": "5.14 Add Reaction - Clap 👏",
+          "request": {
+            "method": "POST",
+            "body": {"raw": "{\"type\": \"CLAP\"}"},
+            "url": "{{BASE_URL}}/api/v1/slambook/entries/{{ENTRY_ID}}/reactions"
+          },
+          "response": []
+        },
+        {
+          "name": "5.15 Remove Reaction",
+          "request": {"method": "DELETE", "url": "{{BASE_URL}}/api/v1/slambook/entries/{{ENTRY_ID}}/reactions"},
+          "response": []
+        },
+        {
+          "name": "5.16 Get Reactions",
+          "request": {"method": "GET", "url": "{{BASE_URL}}/api/v1/slambook/entries/{{ENTRY_ID}}/reactions"},
+          "response": []
+        },
+        {
+          "name": "5.17 Who Reacted",
+          "request": {"method": "GET", "url": "{{BASE_URL}}/api/v1/slambook/entries/{{ENTRY_ID}}/reactions/users"},
+          "response": []
+        },
+        {
+          "name": "5.18 Recent Entries",
+          "request": {"method": "GET", "url": "{{BASE_URL}}/api/v1/slambook/entries/recent?days=7"},
+          "response": []
+        },
+        {
+          "name": "5.19 Popular Entries",
+          "request": {"method": "GET", "url": "{{BASE_URL}}/api/v1/slambook/entries/popular?limit=10"},
+          "response": []
+        },
+        {
+          "name": "5.20 Trending Entries",
+          "request": {"method": "GET", "url": "{{BASE_URL}}/api/v1/slambook/entries/trending"},
+          "response": []
+        },
+        {
+          "name": "5.21 Entries by User",
+          "request": {"method": "GET", "url": "{{BASE_URL}}/api/v1/slambook/entries/user/{{USER_ID}}"},
+          "response": []
+        },
+        {
+          "name": "5.22 Public Entries",
+          "request": {"method": "GET", "url": "{{BASE_URL}}/api/v1/slambook/entries/public?page=0&size=20"},
+          "response": []
+        },
+        {
+          "name": "5.23 Search Entries",
+          "request": {"method": "GET", "url": "{{BASE_URL}}/api/v1/slambook/entries/search?query=awesome"},
+          "response": []
+        },
+        {
+          "name": "5.24 Filter by Date",
+          "request": {"method": "GET", "url": "{{BASE_URL}}/api/v1/slambook/entries?from=2025-01-01&to=2025-12-31"},
+          "response": []
+        },
+        {
+          "name": "5.25 Entries with Photos",
+          "request": {"method": "GET", "url": "{{BASE_URL}}/api/v1/slambook/entries?hasAttachments=true"},
+          "response": []
+        },
+        {
+          "name": "5.26 Anonymous Entries",
+          "request": {"method": "GET", "url": "{{BASE_URL}}/api/v1/slambook/entries?anonymous=true"},
+          "response": []
+        },
+        {
+          "name": "5.27 Report Entry ⚠️",
+          "request": {
+            "method": "POST",
+            "body": {"raw": "{\"reason\": \"Inappropriate content\"}"},
+            "url": "{{BASE_URL}}/api/v1/slambook/entries/{{ENTRY_ID}}/report"
+          },
+          "response": []
+        },
+        {
+          "name": "5.28 My Reports",
+          "request": {"method": "GET", "url": "{{BASE_URL}}/api/v1/slambook/reports/mine"},
+          "response": []
+        },
+        {
+          "name": "5.29 Reported Entries",
+          "request": {"method": "GET", "url": "{{BASE_URL}}/api/v1/slambook/entries/reported"},
+          "response": []
+        },
+        {
+          "name": "5.30 Review Report",
+          "request": {
+            "method": "PUT",
+            "body": {"raw": "{\"action\": \"APPROVE\", \"notes\": \"Reviewed\"}"},
+            "url": "{{BASE_URL}}/api/v1/slambook/entries/{{ENTRY_ID}}/review"
+          },
+          "response": []
+        },
+        {
+          "name": "5.31 Dismiss Report",
+          "request": {"method": "DELETE", "url": "{{BASE_URL}}/api/v1/slambook/entries/{{ENTRY_ID}}/report"},
+          "response": []
+        },
+        {
+          "name": "5.32 Entry Statistics",
+          "request": {"method": "GET", "url": "{{BASE_URL}}/api/v1/slambook/entries/{{ENTRY_ID}}/stats"},
+          "response": []
+        },
+        {
+          "name": "5.33 My Entry Stats",
+          "request": {"method": "GET", "url": "{{BASE_URL}}/api/v1/slambook/my-stats"},
+          "response": []
+        },
+        {
+          "name": "5.34 Reaction Breakdown",
+          "request": {"method": "GET", "url": "{{BASE_URL}}/api/v1/slambook/entries/{{ENTRY_ID}}/reactions/breakdown"},
+          "response": []
+        },
+        {
+          "name": "5.35 Export Entries",
+          "request": {"method": "GET", "url": "{{BASE_URL}}/api/v1/slambook/entries/export?format=pdf"},
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "🔔 6. Notifications (12)",
+      "item": [
+        {
+          "name": "6.1 Get All Notifications",
+          "request": {"method": "GET", "url": "{{BASE_URL}}/api/v1/notifications"},
+          "response": []
+        },
+        {
+          "name": "6.2 Get Unread ⭐",
+          "request": {"method": "GET", "url": "{{BASE_URL}}/api/v1/notifications/unread"},
+          "response": []
+        },
+        {
+          "name": "6.3 Get Read",
+          "request": {"method": "GET", "url": "{{BASE_URL}}/api/v1/notifications/read"},
+          "response": []
+        },
+        {
+          "name": "6.4 Unread Count ⭐",
+          "request": {"method": "GET", "url": "{{BASE_URL}}/api/v1/notifications/unread-count"},
+          "response": []
+        },
+        {
+          "name": "6.5 Filter by Type",
+          "request": {"method": "GET", "url": "{{BASE_URL}}/api/v1/notifications?type=NEW_ENTRY"},
+          "response": []
+        },
+        {
+          "name": "6.6 Mark as Read",
+          "request": {"method": "PUT", "url": "{{BASE_URL}}/api/v1/notifications/{{NOTIFICATION_ID}}/read"},
+          "response": []
+        },
+        {
+          "name": "6.7 Mark All Read ⭐",
+          "request": {"method": "PUT", "url": "{{BASE_URL}}/api/v1/notifications/read-all"},
+          "response": []
+        },
+        {
+          "name": "6.8 Mark as Unread",
+          "request": {"method": "PUT", "url": "{{BASE_URL}}/api/v1/notifications/{{NOTIFICATION_ID}}/unread"},
+          "response": []
+        },
+        {
+          "name": "6.9 Delete Notification",
+          "request": {"method": "DELETE", "url": "{{BASE_URL}}/api/v1/notifications/{{NOTIFICATION_ID}}"},
+          "response": []
+        },
+        {
+          "name": "6.10 Delete All Read",
+          "request": {"method": "DELETE", "url": "{{BASE_URL}}/api/v1/notifications/read-all"},
+          "response": []
+        },
+        {
+          "name": "6.11 Get Settings",
+          "request": {"method": "GET", "url": "{{BASE_URL}}/api/v1/notifications/settings"},
+          "response": []
+        },
+        {
+          "name": "6.12 Update Settings",
+          "request": {
+            "method": "PUT",
+            "body": {"raw": "{\"emailNotifications\": true, \"pushNotifications\": true}"},
+            "url": "{{BASE_URL}}/api/v1/notifications/settings"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "🎨 7. Templates (12)",
+      "item": [
+        {
+          "name": "7.1 System Templates",
+          "request": {"method": "GET", "url": "{{BASE_URL}}/api/v1/templates?type=system"},
+          "response": []
+        },
+        {
+          "name": "7.2 College Templates",
+          "request": {"method": "GET", "url": "{{BASE_URL}}/api/v1/templates?type=college"},
+          "response": []
+        },
+        {
+          "name": "7.3 Get Template",
+          "request": {"method": "GET", "url": "{{BASE_URL}}/api/v1/templates/{{TEMPLATE_ID}}"},
+          "response": []
+        },
+        {
+          "name": "7.4 Default Template",
+          "request": {"method": "GET", "url": "{{BASE_URL}}/api/v1/templates/default"},
+          "response": []
+        },
+        {
+          "name": "7.5 Create Template",
+          "request": {
+            "method": "POST",
+            "body": {"raw": "{\"name\": \"Custom Template\", \"questions\": [{\"text\": \"Question?\", \"type\": \"TEXT\"}]}"},
+            "url": "{{BASE_URL}}/api/v1/templates"
+          },
+          "response": []
+        },
+        {
+          "name": "7.6 Update Template",
+          "request": {
+            "method": "PUT",
+            "body": {"raw": "{\"name\": \"Updated\"}"},
+            "url": "{{BASE_URL}}/api/v1/templates/{{TEMPLATE_ID}}"
+          },
+          "response": []
+        },
+        {
+          "name": "7.7 Delete Template",
+          "request": {"method": "DELETE", "url": "{{BASE_URL}}/api/v1/templates/{{TEMPLATE_ID}}"},
+          "response": []
+        },
+        {
+          "name": "7.8 Activate Template",
+          "request": {"method": "PATCH", "url": "{{BASE_URL}}/api/v1/templates/{{TEMPLATE_ID}}/activate"},
+          "response": []
+        },
+        {
+          "name": "7.9 Deactivate Template",
+          "request": {"method": "PATCH", "url": "{{BASE_URL}}/api/v1/templates/{{TEMPLATE_ID}}/deactivate"},
+          "response": []
+        },
+        {
+          "name": "7.10 Set Default",
+          "request": {"method": "PATCH", "url": "{{BASE_URL}}/api/v1/templates/{{TEMPLATE_ID}}/set-default"},
+          "response": []
+        },
+        {
+          "name": "7.11 Clone Template",
+          "request": {"method": "POST", "url": "{{BASE_URL}}/api/v1/templates/{{TEMPLATE_ID}}/clone"},
+          "response": []
+        },
+        {
+          "name": "7.12 Template Questions",
+          "request": {"method": "GET", "url": "{{BASE_URL}}/api/v1/templates/{{TEMPLATE_ID}}/questions"},
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "📊 8. Analytics (15)",
+      "item": [
+        {
+          "name": "8.1 My Statistics",
+          "request": {"method": "GET", "url": "{{BASE_URL}}/api/v1/analytics/me"},
+          "response": []
+        },
+        {
+          "name": "8.2 My Timeline",
+          "request": {"method": "GET", "url": "{{BASE_URL}}/api/v1/analytics/me/timeline"},
+          "response": []
+        },
+        {
+          "name": "8.3 My Engagement",
+          "request": {"method": "GET", "url": "{{BASE_URL}}/api/v1/analytics/me/engagement"},
+          "response": []
+        },
+        {
+          "name": "8.4 Entries Received",
+          "request": {"method": "GET", "url": "{{BASE_URL}}/api/v1/analytics/entries-received"},
+          "response": []
+        },
+        {
+          "name": "8.5 Entries Written",
+          "request": {"method": "GET", "url": "{{BASE_URL}}/api/v1/analytics/entries-written"},
+          "response": []
+        },
+        {
+          "name": "8.6 College Dashboard",
+          "request": {"method": "GET", "url": "{{BASE_URL}}/api/v1/analytics/college/dashboard"},
+          "response": []
+        },
+        {
+          "name": "8.7 User Growth",
+          "request": {"method": "GET", "url": "{{BASE_URL}}/api/v1/analytics/college/user-growth"},
+          "response": []
+        },
+        {
+          "name": "8.8 Entry Activity",
+          "request": {"method": "GET", "url": "{{BASE_URL}}/api/v1/analytics/college/entry-activity"},
+          "response": []
+        },
+        {
+          "name": "8.9 Batch Distribution",
+          "request": {"method": "GET", "url": "{{BASE_URL}}/api/v1/analytics/college/batch-distribution"},
+          "response": []
+        },
+        {
+          "name": "8.10 Course Distribution",
+          "request": {"method": "GET", "url": "{{BASE_URL}}/api/v1/analytics/college/course-distribution"},
+          "response": []
+        },
+        {
+          "name": "8.11 System Overview",
+          "request": {"method": "GET", "url": "{{BASE_URL}}/api/v1/analytics/system/overview"},
+          "response": []
+        },
+        {
+          "name": "8.12 Monthly Active Users",
+          "request": {"method": "GET", "url": "{{BASE_URL}}/api/v1/analytics/system/mau"},
+          "response": []
+        },
+        {
+          "name": "8.13 Revenue",
+          "request": {"method": "GET", "url": "{{BASE_URL}}/api/v1/analytics/system/revenue"},
+          "response": []
+        },
+        {
+          "name": "8.14 Engagement Rate",
+          "request": {"method": "GET", "url": "{{BASE_URL}}/api/v1/analytics/system/engagement"},
+          "response": []
+        },
+        {
+          "name": "8.15 Top Colleges",
+          "request": {"method": "GET", "url": "{{BASE_URL}}/api/v1/analytics/system/top-colleges"},
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "🔍 9. Search (8)",
+      "item": [
+        {
+          "name": "9.1 Global Search",
+          "request": {"method": "GET", "url": "{{BASE_URL}}/api/v1/search?q=john"},
+          "response": []
+        },
+        {
+          "name": "9.2 Advanced User Search",
+          "request": {
+            "method": "POST",
+            "body": {"raw": "{\"query\": \"john\", \"filters\": {}}"},
+            "url": "{{BASE_URL}}/api/v1/search/users/advanced"
+          },
+          "response": []
+        },
+        {
+          "name": "9.3 Advanced Entry Search",
+          "request": {
+            "method": "POST",
+            "body": {"raw": "{\"query\": \"awesome\"}"},
+            "url": "{{BASE_URL}}/api/v1/search/entries/advanced"
+          },
+          "response": []
+        },
+        {
+          "name": "9.4 Autocomplete",
+          "request": {"method": "GET", "url": "{{BASE_URL}}/api/v1/search/autocomplete?q=jo"},
+          "response": []
+        },
+        {
+          "name": "9.5 Trending",
+          "request": {"method": "GET", "url": "{{BASE_URL}}/api/v1/search/trending"},
+          "response": []
+        },
+        {
+          "name": "9.6 Recent Activities",
+          "request": {"method": "GET", "url": "{{BASE_URL}}/api/v1/search/recent-activities"},
+          "response": []
+        },
+        {
+          "name": "9.7 Popular Slam Books",
+          "request": {"method": "GET", "url": "{{BASE_URL}}/api/v1/search/popular-slambooks"},
+          "response": []
+        },
+        {
+          "name": "9.8 Suggestions",
+          "request": {"method": "GET", "url": "{{BASE_URL}}/api/v1/search/suggestions"},
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "⚙️ 10. System (6)",
+      "item": [
+        {
+          "name": "10.1 Health Check ⭐",
+          "request": {
+            "auth": {"type": "noauth"},
+            "method": "GET",
+            "url": "{{BASE_URL}}/actuator/health"
+          },
+          "response": []
+        },
+        {
+          "name": "10.2 System Info",
+          "request": {"method": "GET", "url": "{{BASE_URL}}/actuator/info"},
+          "response": []
+        },
+        {
+          "name": "10.3 Metrics",
+          "request": {"method": "GET", "url": "{{BASE_URL}}/actuator/metrics"},
+          "response": []
+        },
+        {
+          "name": "10.4 Database Health",
+          "request": {"method": "GET", "url": "{{BASE_URL}}/actuator/health/mongo"},
+          "response": []
+        },
+        {
+          "name": "10.5 Cache Status",
+          "request": {"method": "GET", "url": "{{BASE_URL}}/actuator/health/cache"},
+          "response": []
+        },
+        {
+          "name": "10.6 API Version",
+          "request": {
+            "auth": {"type": "noauth"},
+            "method": "GET",
+            "url": "{{BASE_URL}}/api/v1/version"
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {"key": "BASE_URL", "value": "http://localhost:8080", "type": "string"},
+    {"key": "ACCESS_TOKEN", "value": "", "type": "string"},
+    {"key": "REFRESH_TOKEN", "value": "", "type": "string"},
+    {"key": "COLLEGE_ID", "value": "", "type": "string"},
+    {"key": "COLLEGE_CODE", "value": "", "type": "string"},
+    {"key": "USER_ID", "value": "", "type": "string"},
+    {"key": "USER_ROLE", "value": "", "type": "string"},
+    {"key": "PENDING_USER_ID", "value": "", "type": "string"},
+    {"key": "ENTRY_ID", "value": "", "type": "string"},
+    {"key": "NOTIFICATION_ID", "value": "", "type": "string"},
+    {"key": "TEMPLATE_ID", "value": "", "type": "string"},
+    {"key": "VERIFICATION_TOKEN", "value": "", "type": "string"}
+  ]
+}

@@ -1,0 +1,15 @@
+spring:
+  data:
+    mongodb:
+      uri: mongodb+srv://shailendradilippatil:HfqoIrvrKzaUtJsb@clustergemini.43p8vrp.mongodb.net/SlamBook?retryWrites=true&w=majority&appName=ClusterGemini
+
+logging:
+  level:
+    root: INFO
+    com.slambook: DEBUG
+    org.springframework.data.mongodb: DEBUG
+    org.springframework.security: DEBUG
+    org.springframework.web: DEBUG
+
+server:
+  port: 8080
