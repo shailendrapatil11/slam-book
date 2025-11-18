@@ -144,41 +144,50 @@ public class AuthService {
     }
 
     private Mono<AuthResponse> generateAuthResponse(User user) {
-        return collegeRepository.findById(user.getCollegeId())
-                .map(college -> {
-                    String accessToken = jwtTokenProvider.generateAccessToken(
-                            user.getId(),
-                            user.getEmail(),
-                            user.getRole().name(),
-                            user.getCollegeId()
-                    );
+        // Generate tokens
+        String accessToken = jwtTokenProvider.generateAccessToken(
+                user.getId(),
+                user.getEmail(),
+                user.getRole().name(),
+                user.getCollegeId() != null ? user.getCollegeId() : "" // Handle null collegeId for super admin
+        );
 
-                    String refreshToken = jwtTokenProvider.generateRefreshToken(user.getId());
+        String refreshToken = jwtTokenProvider.generateRefreshToken(user.getId());
 
-                    UserResponse userResponse = mapToUserResponse(user);
-                    userResponse.setCollegeCode(college.getCollegeCode());
-                    userResponse.setCollegeName(college.getName());
+        // Map user to response
+        UserResponse userResponse = mapToUserResponse(user);
 
-                    return AuthResponse.builder()
+        // If a user has college, fetch college details
+        if (user.getCollegeId() != null) {
+            return collegeRepository.findById(user.getCollegeId())
+                    .map(college -> {
+                        userResponse.setCollegeCode(college.getCollegeCode());
+                        userResponse.setCollegeName(college.getName());
+                        return AuthResponse.builder()
+                                .accessToken(accessToken)
+                                .refreshToken(refreshToken)
+                                .tokenType("Bearer")
+                                .expiresIn(900L) // 15 minutes
+                                .user(userResponse)
+                                .build();
+                    })
+                    .defaultIfEmpty(AuthResponse.builder()
                             .accessToken(accessToken)
                             .refreshToken(refreshToken)
                             .tokenType("Bearer")
-                            .expiresIn(900L) // 15 minutes
+                            .expiresIn(900L)
                             .user(userResponse)
-                            .build();
-                })
-                .switchIfEmpty(Mono.just(AuthResponse.builder()
-                        .accessToken(jwtTokenProvider.generateAccessToken(
-                                user.getId(),
-                                user.getEmail(),
-                                user.getRole().name(),
-                                user.getCollegeId()
-                        ))
-                        .refreshToken(jwtTokenProvider.generateRefreshToken(user.getId()))
-                        .tokenType("Bearer")
-                        .expiresIn(900L)
-                        .user(mapToUserResponse(user))
-                        .build()));
+                            .build());
+        } else {
+            // Super admin doesn't have college
+            return Mono.just(AuthResponse.builder()
+                    .accessToken(accessToken)
+                    .refreshToken(refreshToken)
+                    .tokenType("Bearer")
+                    .expiresIn(900L)
+                    .user(userResponse)
+                    .build());
+        }
     }
 
     private UserResponse mapToUserResponse(User user) {
