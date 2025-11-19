@@ -3,9 +3,9 @@ package com.slambook.service;
 import com.slambook.exception.BadRequestException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.stereotype.Service;
+import org.springframework.util.unit.DataSize;
 import reactor.core.publisher.Mono;
 
 import java.io.IOException;
@@ -27,8 +27,8 @@ public class FileStorageService {
     @Value("${app.file.upload-dir:./uploads}")
     private String uploadDir;
 
-    @Value("${app.file.max-file-size:5242880}") // 5MB default
-    private long maxFileSize;
+    @Value("${app.file.max-file-size:5MB}")
+    private DataSize maxFileSize;
 
     private static final List<String> ALLOWED_IMAGE_TYPES = Arrays.asList(
             "image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp"
@@ -42,16 +42,10 @@ public class FileStorageService {
             "audio/mpeg", "audio/mp3", "audio/wav", "audio/ogg"
     );
 
-    /**
-     * Upload profile picture
-     */
     public Mono<String> uploadProfilePicture(FilePart filePart, String userId) {
         return uploadFile(filePart, "profiles", userId, ALLOWED_IMAGE_TYPES);
     }
 
-    /**
-     * Upload slam book attachment (image, video, audio)
-     */
     public Mono<String> uploadSlamBookAttachment(FilePart filePart, String userId, String attachmentType) {
         List<String> allowedTypes;
         String folder;
@@ -76,106 +70,83 @@ public class FileStorageService {
         return uploadFile(filePart, folder, userId, allowedTypes);
     }
 
-    /**
-     * Upload college logo
-     */
     public Mono<String> uploadCollegeLogo(FilePart filePart, String collegeId) {
         return uploadFile(filePart, "colleges/logos", collegeId, ALLOWED_IMAGE_TYPES);
     }
 
-    /**
-     * Generic file upload method
-     */
     private Mono<String> uploadFile(FilePart filePart, String folder, String userId, List<String> allowedTypes) {
-        // Validate file
-        return validateFile(filePart, allowedTypes)
-                .flatMap(valid -> {
-                    try {
-                        // Create directory if not exists
-                        Path uploadPath = Paths.get(uploadDir, folder);
-                        Files.createDirectories(uploadPath);
-
-                        // Generate unique filename
-                        String originalFilename = filePart.filename();
-                        String extension = getFileExtension(originalFilename);
-                        String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
-                        String filename = String.format("%s_%s_%s%s",
-                                userId,
-                                timestamp,
-                                UUID.randomUUID().toString().substring(0, 8),
-                                extension);
-
-                        Path filePath = uploadPath.resolve(filename);
-
-                        log.info("Uploading file: {} to: {}", originalFilename, filePath);
-
-                        // Save file
-                        return DataBufferUtils.write(filePart.content(), filePath, StandardCopyOption.REPLACE_EXISTING)
-                                .then(Mono.fromCallable(() -> {
-                                    // Return relative URL
-                                    String relativeUrl = String.format("/%s/%s/%s", uploadDir, folder, filename);
-                                    log.info("File uploaded successfully: {}", relativeUrl);
-                                    return relativeUrl;
-                                }));
-
-                    } catch (IOException e) {
-                        log.error("Error creating upload directory", e);
-                        return Mono.error(new RuntimeException("Failed to create upload directory", e));
-                    }
-                });
-    }
-
-    /**
-     * Validate file size and type
-     */
-    private Mono<Boolean> validateFile(FilePart filePart, List<String> allowedTypes) {
-        // Get content type
+        // 1. Validate content type
         String contentType = filePart.headers().getContentType() != null
                 ? Objects.requireNonNull(filePart.headers().getContentType()).toString()
                 : "";
-
-        // Validate content type
         boolean isAllowedType = allowedTypes.stream()
                 .anyMatch(type -> contentType.toLowerCase().contains(type.toLowerCase()));
-
         if (!isAllowedType) {
             return Mono.error(new BadRequestException(
                     "Invalid file type. Allowed types: " + String.join(", ", allowedTypes)
             ));
         }
 
-        // Validate file size (check content length if available)
-        return filePart.content()
-                .reduce(0L, (acc, buffer) -> {
-                    long size = acc + buffer.readableByteCount();
-                    DataBufferUtils.release(buffer);
-                    return size;
-                })
-                .flatMap(fileSize -> {
-                    if (fileSize > maxFileSize) {
-                        return Mono.error(new BadRequestException(
-                                String.format("File size exceeds maximum limit of %d MB", maxFileSize / 1024 / 1024)
-                        ));
+        Path tempFile;
+        try {
+            // 2. Save to a temporary file
+            tempFile = Files.createTempFile("slambook-", "-" + filePart.filename());
+        } catch (IOException e) {
+            log.error("Failed to create temporary file", e);
+            return Mono.error(new RuntimeException("Failed to create temporary file", e));
+        }
+
+        return filePart.transferTo(tempFile)
+                .then(Mono.fromCallable(() -> {
+                    // 3. Validate file size
+                    long fileSize = Files.size(tempFile);
+                    if (fileSize > maxFileSize.toBytes()) {
+                        Files.delete(tempFile); // Clean up temp file
+                        throw new BadRequestException(
+                                String.format("File size exceeds maximum limit of %s", maxFileSize.toMegabytes() + "MB")
+                        );
                     }
-                    return Mono.just(true);
-                });
+
+                    // 4. Move file to final destination
+                    Path uploadPath = Paths.get(uploadDir, folder);
+                    Files.createDirectories(uploadPath);
+
+                    String originalFilename = filePart.filename();
+                    String extension = getFileExtension(originalFilename);
+                    String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
+                    String filename = String.format("%s_%s_%s%s",
+                            userId,
+                            timestamp,
+                            UUID.randomUUID().toString().substring(0, 8),
+                            extension);
+
+                    Path finalPath = uploadPath.resolve(filename);
+                    Files.move(tempFile, finalPath, StandardCopyOption.REPLACE_EXISTING);
+
+                    log.info("File moved to final destination: {}", finalPath);
+
+                    // 5. Return relative URL, ensuring forward slashes for web paths
+                    String relativeUrl = "/" + Path.of(folder).resolve(filename).toString().replace('\\', '/');
+                    log.info("File uploaded successfully. URL: {}", relativeUrl);
+                    return relativeUrl;
+                }));
     }
 
-    /**
-     * Delete file
-     */
     public Mono<Void> deleteFile(String fileUrl) {
         return Mono.fromRunnable(() -> {
+            if (fileUrl == null || fileUrl.isBlank()) {
+                return;
+            }
             try {
-                // Convert URL to file path
-                String filePath = fileUrl.startsWith("/") ? fileUrl.substring(1) : fileUrl;
-                Path path = Paths.get(filePath);
+                // Convert URL to file a path by combining with the base upload directory
+                String relativePath = fileUrl.startsWith("/") ? fileUrl.substring(1) : fileUrl;
+                Path path = Paths.get(uploadDir).resolve(relativePath);
 
                 if (Files.exists(path)) {
                     Files.delete(path);
-                    log.info("File deleted: {}", fileUrl);
+                    log.info("File deleted: {}", path);
                 } else {
-                    log.warn("File not found for deletion: {}", fileUrl);
+                    log.warn("File not found for deletion: {}", path);
                 }
             } catch (IOException e) {
                 log.error("Error deleting file: {}", fileUrl, e);
@@ -183,51 +154,14 @@ public class FileStorageService {
         });
     }
 
-    /**
-     * Get file extension
-     */
     private String getFileExtension(String filename) {
         if (filename == null || filename.isEmpty()) {
             return "";
         }
-
         int lastDotIndex = filename.lastIndexOf('.');
         if (lastDotIndex == -1) {
             return "";
         }
-
         return filename.substring(lastDotIndex);
-    }
-
-    /**
-     * Get file size in human-readable format
-     */
-    public String getReadableFileSize(long size) {
-        if (size <= 0) return "0 B";
-
-        final String[] units = new String[]{"B", "KB", "MB", "GB", "TB"};
-        int digitGroups = (int) (Math.log10(size) / Math.log10(1024));
-
-        return String.format("%.2f %s",
-                size / Math.pow(1024, digitGroups),
-                units[digitGroups]);
-    }
-
-    /**
-     * Validate image dimensions (optional, for advanced validation)
-     */
-    public Mono<Boolean> validateImageDimensions(FilePart filePart, int minWidth, int minHeight, int maxWidth, int maxHeight) {
-        // This would require additional image processing library like ImageIO
-        // For now, return true (basic validation only)
-        return Mono.just(true);
-    }
-
-    /**
-     * Generate thumbnail for image (optional, for future implementation)
-     */
-    public Mono<String> generateThumbnail(String originalImageUrl, int width, int height) {
-        // This would require image processing library
-        // For now, return original URL
-        return Mono.just(originalImageUrl);
     }
 }

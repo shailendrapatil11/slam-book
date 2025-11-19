@@ -60,6 +60,46 @@ public class UserService {
                 .map(this::mapToUserResponse);
     }
 
+    /**
+     * Update profile picture URL
+     */
+    public Mono<UserResponse> updateProfilePicture(CustomUserDetails userDetails, String profilePictureUrl) {
+        return userRepository.findById(userDetails.getUserId())
+                .switchIfEmpty(Mono.error(new NotFoundException("User not found")))
+                .flatMap(user -> {
+                    User.UserProfile profile = user.getProfile();
+                    if (profile == null) {
+                        profile = new User.UserProfile();
+                    }
+
+                    profile.setProfilePicture(profilePictureUrl);
+                    user.setProfile(profile);
+                    user.setUpdatedAt(LocalDateTime.now());
+
+                    return userRepository.save(user);
+                })
+                .map(this::mapToUserResponse)
+                .doOnSuccess(response -> log.info("Profile picture updated for user: {}", userDetails.getUserId()));
+    }
+
+    /**
+     * Delete profile picture
+     */
+    public Mono<UserResponse> deleteProfilePicture(CustomUserDetails userDetails) {
+        return userRepository.findById(userDetails.getUserId())
+                .switchIfEmpty(Mono.error(new NotFoundException("User not found")))
+                .flatMap(user -> {
+                    if (user.getProfile() != null) {
+                        user.getProfile().setProfilePicture(null);
+                        user.setUpdatedAt(LocalDateTime.now());
+                        return userRepository.save(user);
+                    }
+                    return Mono.just(user);
+                })
+                .map(this::mapToUserResponse)
+                .doOnSuccess(response -> log.info("Profile picture deleted for user: {}", userDetails.getUserId()));
+    }
+
     public Mono<UserResponse> updateSlamBookSettings(CustomUserDetails userDetails, SlamBookSettingsRequest request) {
         return userRepository.findById(userDetails.getUserId())
                 .switchIfEmpty(Mono.error(new NotFoundException("User not found")))

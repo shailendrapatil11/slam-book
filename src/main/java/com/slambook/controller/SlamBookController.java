@@ -6,13 +6,16 @@ import com.slambook.dto.request.SlamBookEntryCreateRequest;
 import com.slambook.dto.request.SlamBookEntryUpdateRequest;
 import com.slambook.dto.response.ApiResponse;
 import com.slambook.dto.response.SlamBookEntryResponse;
+import com.slambook.model.SlamBookEntry;
 import com.slambook.security.CustomUserDetails;
+import com.slambook.service.FileStorageService;
 import com.slambook.service.SlamBookService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -27,6 +30,7 @@ import java.util.List;
 public class SlamBookController {
 
     private final SlamBookService slamBookService;
+    private final FileStorageService fileStorageService;
 
     @PostMapping("/entries")
     public Mono<ResponseEntity<ApiResponse<SlamBookEntryResponse>>> createEntry(
@@ -37,6 +41,102 @@ public class SlamBookController {
                 .map(entry -> ResponseEntity
                         .status(HttpStatus.CREATED)
                         .body(ApiResponse.success("Entry created successfully", entry)));
+    }
+
+    /**
+     * Upload attachment (image) to slam book entry
+     */
+    @PostMapping("/entries/{entryId}/attachments/image")
+    public Mono<ResponseEntity<ApiResponse<SlamBookEntryResponse>>> uploadImage(
+            @PathVariable String entryId,
+            @RequestPart("file") FilePart file,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        log.info("Upload image to entry: {} by user: {}", entryId, userDetails.getUserId());
+
+        return fileStorageService.uploadSlamBookAttachment(file, userDetails.getUserId(), "IMAGE")
+                .flatMap(url -> {
+                    // Get file metadata
+                    String filename = file.filename();
+                    // Note: FilePart doesn't provide size directly in reactive way
+                    // We'll set it as 0 for now, or you can calculate during upload
+                    Long fileSize = 0L;
+
+                    return slamBookService.addAttachment(
+                            entryId,
+                            userDetails,
+                            url,
+                            SlamBookEntry.AttachmentType.IMAGE,
+                            filename,
+                            fileSize
+                    );
+                })
+                .map(entry -> ResponseEntity.ok(
+                        ApiResponse.success("Image uploaded successfully", entry)
+                ));
+    }
+
+    /**
+     * Upload attachment (video) to slam book entry
+     */
+    @PostMapping("/entries/{entryId}/attachments/video")
+    public Mono<ResponseEntity<ApiResponse<SlamBookEntryResponse>>> uploadVideo(
+            @PathVariable String entryId,
+            @RequestPart("file") FilePart file,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        log.info("Upload video to entry: {} by user: {}", entryId, userDetails.getUserId());
+
+        return fileStorageService.uploadSlamBookAttachment(file, userDetails.getUserId(), "VIDEO")
+                .flatMap(url -> slamBookService.addAttachment(
+                        entryId,
+                        userDetails,
+                        url,
+                        SlamBookEntry.AttachmentType.VIDEO,
+                        file.filename(),
+                        0L
+                ))
+                .map(entry -> ResponseEntity.ok(
+                        ApiResponse.success("Video uploaded successfully", entry)
+                ));
+    }
+
+    /**
+     * Upload attachment (audio) to slam book entry
+     */
+    @PostMapping("/entries/{entryId}/attachments/audio")
+    public Mono<ResponseEntity<ApiResponse<SlamBookEntryResponse>>> uploadAudio(
+            @PathVariable String entryId,
+            @RequestPart("file") FilePart file,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        log.info("Upload audio to entry: {} by user: {}", entryId, userDetails.getUserId());
+
+        return fileStorageService.uploadSlamBookAttachment(file, userDetails.getUserId(), "AUDIO")
+                .flatMap(url -> slamBookService.addAttachment(
+                        entryId,
+                        userDetails,
+                        url,
+                        SlamBookEntry.AttachmentType.AUDIO,
+                        file.filename(),
+                        0L
+                ))
+                .map(entry -> ResponseEntity.ok(
+                        ApiResponse.success("Audio uploaded successfully", entry)
+                ));
+    }
+
+    /**
+     * Remove attachment from entry
+     */
+    @DeleteMapping("/entries/{entryId}/attachments/{attachmentId}")
+    public Mono<ResponseEntity<ApiResponse<SlamBookEntryResponse>>> removeAttachment(
+            @PathVariable String entryId,
+            @PathVariable String attachmentId,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        log.info("Remove attachment: {} from entry: {}", attachmentId, entryId);
+
+        return slamBookService.removeAttachment(entryId, attachmentId, userDetails)
+                .map(entry -> ResponseEntity.ok(
+                        ApiResponse.success("Attachment removed successfully", entry)
+                ));
     }
 
     @GetMapping("/entries/for-me")

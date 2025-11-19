@@ -14,7 +14,7 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-class TemplateCreateRequest {
+public class TemplateCreateRequest {
     @NotBlank(message = "Template name is required")
     private String name;
 

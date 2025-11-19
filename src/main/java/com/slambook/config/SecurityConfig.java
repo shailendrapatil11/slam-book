@@ -30,6 +30,14 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final SecurityContextRepository securityContextRepository;
 
+    private static final String[] SWAGGER_WHITELIST = {
+            "/swagger-ui.html",
+            "/swagger-ui/**",
+            "/api-docs/**",
+            "/v3/api-docs/**",
+            "/webjars/swagger-ui/**"
+    };
+
     @Bean
     public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
         return http
@@ -50,6 +58,9 @@ public class SecurityConfig {
                                 "/api/v1/auth/forgot-password",
                                 "/api/v1/auth/reset-password")
                         .permitAll()
+
+                        // Swagger endpoints
+                        .pathMatchers(SWAGGER_WHITELIST).permitAll()
 
                         // Actuator endpoints
                         .pathMatchers("/actuator/**").permitAll()

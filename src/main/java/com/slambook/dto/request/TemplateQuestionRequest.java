@@ -14,7 +14,7 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-class TemplateQuestionRequest {
+public class TemplateQuestionRequest {
     @NotBlank(message = "Question text is required")
     private String text;
 

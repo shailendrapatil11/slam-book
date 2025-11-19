@@ -33,6 +33,7 @@ public class SlamBookService {
     private final UserRepository userRepository;
     private final UserService userService;
     private final NotificationService notificationService;
+    private final FileStorageService fileStorageService;
 
     public Mono<SlamBookEntryResponse> createEntry(CustomUserDetails userDetails, SlamBookEntryCreateRequest request) {
         // Check if user already wrote for this person
@@ -64,6 +65,7 @@ public class SlamBookService {
                                         .isAnonymous(request.getIsAnonymous() != null ? request.getIsAnonymous() : false)
                                         .responses(request.getResponses())
                                         .ratings(request.getRatings())
+                                        .attachments(new ArrayList<>()) // Initialize empty list
                                         .reactions(new ArrayList<>())
                                         .visibility(request.getVisibility() != null ? request.getVisibility() : SlamBookEntry.Visibility.PUBLIC)
                                         .isReported(false)
@@ -80,6 +82,81 @@ public class SlamBookService {
                             .thenReturn(entry);
                 })
                 .flatMap(this::enrichEntryWithUserDetails);
+    }
+
+    /**
+     * Add attachment to existing entry
+     */
+    public Mono<SlamBookEntryResponse> addAttachment(
+            String entryId,
+            CustomUserDetails userDetails,
+            String attachmentUrl,
+            SlamBookEntry.AttachmentType type,
+            String filename,
+            Long size) {
+
+        return slamBookEntryRepository.findById(entryId)
+                .switchIfEmpty(Mono.error(new NotFoundException("Entry not found")))
+                .flatMap(entry -> {
+                    // Only the writer can add attachments
+                    if (!entry.getWrittenBy().equals(userDetails.getUserId())) {
+                        return Mono.error(new ForbiddenException("You can only add attachments to your own entries"));
+                    }
+
+                    if (entry.getAttachments() == null) {
+                        entry.setAttachments(new ArrayList<>());
+                    }
+
+                    // Create attachment object
+                    SlamBookEntry.Attachment attachment = SlamBookEntry.Attachment.builder()
+                            .id(java.util.UUID.randomUUID().toString())
+                            .type(type)
+                            .url(attachmentUrl)
+                            .filename(filename)
+                            .size(size)
+                            .build();
+
+                    entry.getAttachments().add(attachment);
+                    entry.setUpdatedAt(LocalDateTime.now());
+
+                    return slamBookEntryRepository.save(entry);
+                })
+                .flatMap(this::enrichEntryWithUserDetails)
+                .doOnSuccess(response -> log.info("Attachment added to entry: {}", entryId));
+    }
+
+    /**
+     * Remove attachment from entry
+     */
+    public Mono<SlamBookEntryResponse> removeAttachment(String entryId, String attachmentId, CustomUserDetails userDetails) {
+        return slamBookEntryRepository.findById(entryId)
+                .switchIfEmpty(Mono.error(new NotFoundException("Entry not found")))
+                .flatMap(entry -> {
+                    // Only the writer can remove attachments
+                    if (!entry.getWrittenBy().equals(userDetails.getUserId())) {
+                        return Mono.error(new ForbiddenException("You can only remove attachments from your own entries"));
+                    }
+
+                    if (entry.getAttachments() == null || entry.getAttachments().isEmpty()) {
+                        return Mono.error(new NotFoundException("No attachments found"));
+                    }
+
+                    // Find and remove attachment
+                    SlamBookEntry.Attachment attachmentToRemove = entry.getAttachments().stream()
+                            .filter(a -> a.getId().equals(attachmentId))
+                            .findFirst()
+                            .orElseThrow(() -> new NotFoundException("Attachment not found"));
+
+                    // Delete file from storage
+                    return fileStorageService.deleteFile(attachmentToRemove.getUrl())
+                            .then(Mono.defer(() -> {
+                                entry.getAttachments().removeIf(a -> a.getId().equals(attachmentId));
+                                entry.setUpdatedAt(LocalDateTime.now());
+                                return slamBookEntryRepository.save(entry);
+                            }));
+                })
+                .flatMap(this::enrichEntryWithUserDetails)
+                .doOnSuccess(response -> log.info("Attachment removed from entry: {}", entryId));
     }
 
     public Mono<SlamBookEntryResponse> updateEntry(String entryId, CustomUserDetails userDetails, SlamBookEntryUpdateRequest request) {
@@ -110,6 +187,13 @@ public class SlamBookService {
                     if (!entry.getWrittenBy().equals(userDetails.getUserId()) &&
                             !entry.getWrittenFor().equals(userDetails.getUserId())) {
                         return Mono.error(new ForbiddenException("You cannot delete this entry"));
+                    }
+
+                    // Delete all attachments from storage
+                    if (entry.getAttachments() != null && !entry.getAttachments().isEmpty()) {
+                        return Flux.fromIterable(entry.getAttachments())
+                                .flatMap(attachment -> fileStorageService.deleteFile(attachment.getUrl()))
+                                .then(slamBookEntryRepository.delete(entry));
                     }
 
                     return slamBookEntryRepository.delete(entry);

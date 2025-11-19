@@ -59,3 +59,27 @@ logging:
     com.slambook: DEBUG
     org.springframework.data.mongodb: DEBUG
     org.springframework.security: DEBUG
+
+# Springdoc OpenAPI Configuration
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+  default-produces-media-type: application/json
+  show-actuator: true
+  api-docs.groups.enabled: true
+
+info:
+  app:
+    name: ${spring.application.name}
+    version: 1.0.0
+    description: Digital SlamBook Platform API
+
+springdoc.api-docs.info.title: ${info.app.name}
+springdoc.api-docs.info.version: ${info.app.version}
+springdoc.api-docs.info.description: ${info.app.description}
+
+springdoc.components.security-schemes.bearer-key.type: http
+springdoc.components.security-schemes.bearer-key.scheme: bearer
+springdoc.components.security-schemes.bearer-key.bearer-format: JWT

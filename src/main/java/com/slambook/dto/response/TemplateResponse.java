@@ -13,7 +13,7 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-class TemplateResponse {
+public class TemplateResponse {
     private String id;
     private String collegeId;
     private String name;
